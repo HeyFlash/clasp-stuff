@@ -23,7 +23,7 @@ not comments")
 (defconst cpp2clb/remove-from-comment-regexp "///*"
   "The regexp that is used to delete matches from comments.")
 
-(defconst cpp2clb/function-name-regexp "\s+.*("
+(defconst cpp2clb/function-name-regexp "\s+\\sw+("
   "The regexp that is used to detect the name of a function")
 
 (defconst cpp2clb/class-regexp "\s*class\s+"
