@@ -5,13 +5,25 @@
 ;;; Edit the keymap at the end of the file, evaluate the file
 ;;; and activate cpp2clbind-mode.
 
-
 (defvar cpp2clb/current-namespace "sf"
   "Always used as the current namespace.")
 
 (defvar cpp2clb/current-class nil
   "Used as the name of the current class.
 If nil, the name of the class is tried to be autodetected.")
+
+(defvar cpp2clb/static-class-delimiter "/"
+  "The delimiter between class name and function name,
+used when static member functions are translated.")
+
+(defconst cpp2clb/string-literal-prefix "R"
+  "The prefix for the string literal of the docstring.")
+
+(defconst cpp2clb/string-literal-start-delimiter "\"**("
+  "The start delimiter for the string literal of the docstring.")
+
+(defconst cpp2clb/string-literal-end-delimiter "**)\""
+  "The end delimiter for the string literal of the docstring.")
 
 (defconst cpp2clb/no-comment-regexp "^[^/]*$"
   "The regexp that is used to distinguish lines that are
@@ -69,7 +81,8 @@ i.e. where the comment ends."
 (defun cpp2clb/get-function-definition-at-point ()
   "Returns the function definition at the current point,
 even if point is inside the doxy string"
-  (cpp2clb/get-function-definition (cpp2clb/get-function-string-at-point)))
+  (cpp2clb/get-function-definition
+   (cpp2clb/get-function-string-at-point)))
 
 (defun cpp2clb/get-doxystring (function-with-doxy)
   "Extracts the doxystring from function-with-doxy"
@@ -88,8 +101,8 @@ has been removed."
   (cpp2clb/uncomment-string (cpp2clb/get-doxystring-at-point)))
 
 (defun cpp2clb/uncomment-string (string)
-  "Removes the everything that matches cpp2clb from a string.
-Starting and trailing whitespaces are removed as well."
+  "Removes the everything that matches cpp2clb/remove-from-comment-regexp
+ from a string. Starting and trailing whitespaces are removed as well."
   (cpp2clb/chomp
    (replace-regexp-in-string
     cpp2clb/remove-from-comment-regexp "" string)))
@@ -117,11 +130,14 @@ even if point is in the doxystring."
 (defun cpp2clb/lispify-name (function-name)
   "Lispifies the name of a function, 
 i.e. replaces camel casing with dashes."
-  (let ((case-fold-search nil))
+  (let ((case-fold-search nil)
+	(fn-dc
+	 (concat (downcase (substring function-name 0 1))
+		 (substring function-name 1))))
     (replace-regexp-in-string
-     "[A-Z]" 'cpp2clb/lispify-helper function-name t nil nil 0)))
+     "[A-Z]" 'cpp2clb/lispify-helper fn-dc t nil nil 0)))
 
-(defun cpp2clb/get-lispfied-function-name-at-point ()
+(defun cpp2clb/get-lispified-function-name-at-point ()
   "Returns the lispified name of the function found at point,
 even if point is in the doxystring."
   (cpp2clb/lispify-name
@@ -148,20 +164,43 @@ of that variable."
       cpp2clb/current-class
     (cpp2clb/find-current-class-name)))
 
-(defun cpp2clb/create-clbind-def-from-point ()
+(defun cpp2clb/create-clbind-member-def-from-point ()
   "Returns the .def that suits the function definition found at point"
   (concat
    ".def(\""
-   (cpp2clb/get-lispfied-function-name-at-point)
+   (cpp2clb/get-lispified-function-name-at-point)
    "\", &"
    cpp2clb/current-namespace
    "::"
    (cpp2clb/get-current-class-name)
    "::"
-   (cpp2clb/get-lispfied-function-name-at-point)
-   ",\npolicies<>(), \"\", \"\",\n\""
+   (cpp2clb/get-function-name-at-point)
+   ",\npolicies<>(), \"\", \"\",\n"
+   cpp2clb/string-literal-prefix
+   cpp2clb/string-literal-start-delimiter
    (cpp2clb/get-documentation-string-at-point)
-   "\")"))
+   cpp2clb/string-literal-end-delimiter
+   ")"))
+
+(defun cpp2clb/create-clbind-static-def-from-point ()
+  "Returns the .def that suits the function definition found at point"
+  (concat
+   ",def(\""
+   (cpp2clb/lispify-name (cpp2clb/get-current-class-name))
+   cpp2clb/static-class-delimiter
+   (cpp2clb/get-lispified-function-name-at-point)
+   "\", &"
+   cpp2clb/current-namespace
+   "::"
+   (cpp2clb/get-current-class-name)
+   "::"
+   (cpp2clb/get-function-name-at-point)
+   ",\npolicies<>(), \"\", \"\",\n"
+   cpp2clb/string-literal-prefix
+   cpp2clb/string-literal-start-delimiter
+   (cpp2clb/get-documentation-string-at-point)
+   cpp2clb/string-literal-end-delimiter
+   ")"))
 
 (defun cpp2clb/execute-function-previous-window (function)
   "Executes a given function in the previous window at its point,
@@ -172,11 +211,11 @@ of that variable."
     (funcall function)
     (pop-to-buffer curbuf)))
 
-(defun cpp2clb/insert-clbind-def-previous-window ()
+(defun cpp2clb/insert-clbind-member-def-previous-window ()
   "Inserts the clbind def created from the current function 
 into the previous window, at its point."
   (interactive)
-  (let ((clbind-def (cpp2clb/create-clbind-def-from-point)))
+  (let ((clbind-def (cpp2clb/create-clbind-member-def-from-point)))
     (cpp2clb/execute-function-previous-window
      '(lambda ()
 	(let ((indcolumn (+ 5 (current-column)))
@@ -184,7 +223,25 @@ into the previous window, at its point."
 	  (insert clbind-def)
 	  (indent-region start (point) indcolumn)
 	  (newline)
+	  (newline)
 	  (c-indent-line-or-region))))))
+
+
+(defun cpp2clb/insert-clbind-static-def-previous-window ()
+  "Inserts the clbind def created from the current function 
+into the previous window, at its point."
+  (interactive)
+  (let ((clbind-def (cpp2clb/create-clbind-static-def-from-point)))
+    (cpp2clb/execute-function-previous-window
+     '(lambda ()
+	(let ((indcolumn (+ 5 (current-column)))
+	      (start (point)))
+	  (insert clbind-def)
+	  (indent-region start (point) indcolumn)
+	  (newline)
+	  (newline)
+	  (c-indent-line-or-region))))))
+
 
 (define-minor-mode cpp2clbind-mode
   "A minor mode for quickly creating clbind definitions
@@ -194,5 +251,11 @@ from cpp header file definitions."
     (define-key
       cpp2clbind-mode-map
       (kbd "s-b")
-      'cpp2clb/insert-clbind-def-previous-window)
+      'cpp2clb/insert-clbind-member-def-previous-window)
+    (define-key
+      cpp2clbind-mode-map
+      (kbd "s-n")
+      'cpp2clb/insert-clbind-static-def-previous-window)
     cpp2clbind-mode-map))
+
+(add-hook 'c++-mode-hook 'cpp2clbind-mode)
