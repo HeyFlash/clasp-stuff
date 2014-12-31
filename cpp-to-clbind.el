@@ -22,7 +22,7 @@ used when static member functions are translated.")
 (defconst cpp2clb/string-literal-start-delimiter "\"**("
   "The start delimiter for the string literal of the docstring.")
 
-(defconst cpp2clb/string-literal-end-delimiter "**)\""
+(defconst cpp2clb/string-literal-end-delimiter ")**\""
   "The end delimiter for the string literal of the docstring.")
 
 (defconst cpp2clb/no-comment-regexp "^[^/]*$"
