@@ -19,8 +19,8 @@ If nil, the name of the class is tried to be autodetected.")
   "The delimiter between class name and function name,
 used when static member functions are translated.")
 
-(defconst cpp2clb/enum-class-delimiter "/"
-  "The delimiter between class name and enum name, 
+(defconst cpp2clb/enum-value-delimiter "/"
+  "The delimiter between enum name and enum value, 
 used when enums are translated to symbols.")
 
 (defconst cpp2clb/string-literal-prefix "R"
@@ -327,8 +327,8 @@ into the previous window, at its point."
        (concat
 	return-string
 	"  value(\""
-	(cpp2clb/lispify-name (cpp2clb/find-current-class-name))
-	cpp2clb/enum-class-delimiter
+	(cpp2clb/lispify-name (cpp2clb/find-current-enum-name))
+	cpp2clb/enum-value-delimiter
 	(cpp2clb/lispify-name
 	 (cpp2clb/get-enum-member-from-line enum-def))
 	"\", "
