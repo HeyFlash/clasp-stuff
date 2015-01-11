@@ -308,7 +308,7 @@ into the previous window, at its point."
   "Returns the enum definition that suits the enum definition found at point"
   (let ((return-string 
 	 (concat
-	  ",enum_<"
+	  ".enum_<"
 	  (cpp2clb/get-full-enum-designator)
 	  ">(core::lisp_intern(\""
 	  cpp2clb/current-package
