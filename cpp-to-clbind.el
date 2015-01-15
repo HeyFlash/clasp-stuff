@@ -19,6 +19,10 @@ If nil, the name of the class is tried to be autodetected.")
   "The delimiter between class name and function name,
 used when static member functions are translated.")
 
+(defconst cpp2clb/enum-class-delimiter "/"
+  "The delimiter between class name and enum name, 
+used when enums are translated to symbols.")
+
 (defconst cpp2clb/enum-value-delimiter "/"
   "The delimiter between enum name and enum value, 
 used when enums are translated to symbols.")
@@ -42,10 +46,10 @@ not comments.")
 (defconst cpp2clb/remove-from-comment-regexp "///*"
   "The regexp that is used to delete matches from comments.")
 
-(defconst cpp2clb/function-name-regexp "\s+\\sw+("
+(defconst cpp2clb/function-name-regexp "\\sw+("
   "The regexp that is used to detect the name of a function.")
 
-(defconst cpp2clb/class-regexp "\s*class\s+"
+(defconst cpp2clb/class-regexp "\s*\\(class\\|struct\\)\s+"
   "The regexp that is used to find the current class.")
 
 (defconst cpp2clb/enum-regexp "\s*enum\s+"
@@ -55,6 +59,13 @@ not comments.")
   "\\(SFML_SYSTEM_API\\|SFML_WINDOW_API\\|SFML_GRAPHICS_API\\|SFML_AUDIO_API\\|SFML_NETWORK_API\\)"
   "The regexp that is used to detect stuff that comes between
 the class keyword and the actual name of the class.")
+
+(defconst cpp2clb/api-def-regexp-complete
+  "\\(^SFML_SYSTEM_API$\\|^SFML_WINDOW_API$\\|^SFML_GRAPHICS_API$\\|^SFML_AUDIO_API$\\|^SFML_NETWORK_API$\\)"
+  "The regexp that is used to check whether a string is a api def.")
+
+(defconst cpp2clb/function-keywords
+  "\\(^virtual$\\|^static$\\|^public$\\|^private$\\)")
 
 (defun cpp2clb/chomp (str)
   "Chomp leading and tailing whitespace from STR."
@@ -208,12 +219,84 @@ of that variable."
       cpp2clb/current-class
     (cpp2clb/find-current-class-name)))
 
-(defun cpp2clb/create-clbind-member-def-from-point ()
-  "Returns the .def that suits the function definition found at point"
+(defun cpp2clb/get-parameter-list-from-point ()
+  "Returns a list of all the parameters for the function at point.
+The list contains types and names of the parameters as found in code."
+  (mapcar
+   'cpp2clb/chomp
+   (split-string
+    (cpp2clb/get-brace-content
+     (cpp2clb/get-function-definition-at-point) "(" ")")
+    "," t)))
+
+(defun cpp2clb/allowed-name (parameter)
+  (not
+   (or (string-match cpp2clb/function-keywords parameter)
+       (string-match cpp2clb/api-def-regexp-complete parameter))))
+
+(defun cpp2clb/extract-parameter-type (parameter)
+  "Extracts the parameter type if parameter is both type and name 
+and might contain a default."
+  (let* ((para-list (split-string
+		     (substring  parameter 0
+				 (string-match "=" parameter))))
+	 (ret-string "")
+	 (last (nth (- (length para-list) 1) para-list)))
+    (dotimes (i (- (length para-list) 1))
+      (when (cpp2clb/allowed-name (nth i para-list))
+	(setq ret-string
+	      (concat ret-string (nth i para-list) " "))))
+    (when (char-equal (elt last 0) ?*)
+      (setq ret-string (concat ret-string "*")))
+    (when (char-equal (elt last 0) ?&)
+      (setq ret-string (concat ret-string "&")))
+    (cpp2clb/chomp ret-string)))
+
+(defun cpp2clb/get-parameter-types-from-point ()
+  "Returns a list of all the parameter types for the function at point."
+  (mapcar
+   'cpp2clb/extract-parameter-type
+   (cpp2clb/get-parameter-list-from-point)))
+
+(defun cpp2clb/get-return-type-from-point ()
+  "Returns the return type of the function at point."
+  (cpp2clb/extract-parameter-type
+   (substring
+    (cpp2clb/get-function-definition-at-point)
+    0
+    (string-match
+     "("
+     (cpp2clb/get-function-definition-at-point)))))
+
+(defun cpp2clb/get-function-cast-from-point (non-static)
+  "Returns a cast to the function at point."
+  (concat
+   "("
+   (cpp2clb/get-return-type-from-point)
+   " ("
+   (when non-static
+     (concat
+      cpp2clb/current-namespace
+      "::"
+      (cpp2clb/get-current-class-name)
+      "::"))
+   "*)("
+   (mapconcat 'identity
+	      (cpp2clb/get-parameter-types-from-point) ", ")
+   "))"))
+
+(defun cpp2clb/create-clbind-member-def-from-point
+    (&optional overloaded)
+  "Returns the .def that suits the function definition found at point.
+If overloaded is non-nil, a function-pointer cast fitting for 
+overloaded member functions is included in the .def."
   (concat
    ".def(\""
    (cpp2clb/get-lispified-function-name-at-point)
-   "\", &"
+   "\", "
+   (when overloaded
+     (cpp2clb/get-function-cast-from-point t))
+   "&"
    cpp2clb/current-namespace
    "::"
    (cpp2clb/get-current-class-name)
@@ -226,19 +309,40 @@ of that variable."
    cpp2clb/string-literal-end-delimiter
    ")"))
 
-(defun cpp2clb/create-clbind-static-def-from-point ()
+(defun cpp2clb/create-clbind-static-def-from-point
+    (&optional overloaded)
   "Returns the .def that suits the function definition found at point"
   (concat
    ",def(\""
    (cpp2clb/lispify-name (cpp2clb/get-current-class-name))
    cpp2clb/static-class-delimiter
    (cpp2clb/get-lispified-function-name-at-point)
-   "\", &"
+   "\", "
+   (when overloaded
+     (cpp2clb/get-function-cast-from-point nil))
+   "&"
    cpp2clb/current-namespace
    "::"
    (cpp2clb/get-current-class-name)
    "::"
    (cpp2clb/get-function-name-at-point)
+   ",\npolicies<>(), \"\", \"\",\n"
+   cpp2clb/string-literal-prefix
+   cpp2clb/string-literal-start-delimiter
+   (cpp2clb/get-documentation-string-at-point)
+   cpp2clb/string-literal-end-delimiter
+   ")"))
+
+(defun cpp2clb/create-clbind-constructor-def-from-point ()
+  "Returns the .defconstructor that suits the constructor definition
+found at point."
+  (concat
+   ".def_constructor(\""
+   (cpp2clb/get-lispified-function-name-at-point)
+   "\", constructor<"
+   (mapconcat 'identity 
+	      (cpp2clb/get-parameter-types-from-point) ", ")
+   ">()"
    ",\npolicies<>(), \"\", \"\",\n"
    cpp2clb/string-literal-prefix
    cpp2clb/string-literal-start-delimiter
@@ -255,11 +359,14 @@ of that variable."
     (funcall function)
     (pop-to-buffer curbuf)))
 
-(defun cpp2clb/insert-clbind-member-def-previous-window ()
+(defun cpp2clb/insert-clbind-member-def-previous-window (overloaded)
   "Inserts the clbind def created from the current function 
-into the previous window, at its point."
-  (interactive)
-  (let ((clbind-def (cpp2clb/create-clbind-member-def-from-point)))
+into the previous window, at its point.
+If the prefix arg overloaded is non-nil, a version including
+the function pointer cast for an overloaded method is inserted."
+  (interactive "P")
+  (let ((clbind-def
+	 (cpp2clb/create-clbind-member-def-from-point overloaded)))
     (cpp2clb/execute-function-previous-window
      '(lambda ()
 	(let ((indcolumn (+ 5 (current-column)))
@@ -268,15 +375,33 @@ into the previous window, at its point."
 	  (indent-region start (point) indcolumn)
 	  (newline)
 	  (newline)
-	  (c-indent-line-or-region))))
-    ))
+	  (c-indent-line-or-region))))))
 
 
-(defun cpp2clb/insert-clbind-static-def-previous-window ()
+(defun cpp2clb/insert-clbind-static-def-previous-window (overloaded)
+  "Inserts the clbind def created from the current function 
+into the previous window, at its point.
+If the prefix arg overloaded is non-nil, a version including
+the function pointer cast for an overloaded method is inserted."
+  (interactive "P")
+  (let ((clbind-def
+	 (cpp2clb/create-clbind-static-def-from-point overloaded)))
+    (cpp2clb/execute-function-previous-window
+     '(lambda ()
+	(let ((indcolumn (+ 5 (current-column)))
+	      (start (point)))
+	  (insert clbind-def)
+	  (indent-region start (point) indcolumn)
+	  (newline)
+	  (newline)
+	  (c-indent-line-or-region))))))
+
+
+(defun cpp2clb/insert-clbind-constructor-def-previous-window ()
   "Inserts the clbind def created from the current function 
 into the previous window, at its point."
   (interactive)
-  (let ((clbind-def (cpp2clb/create-clbind-static-def-from-point)))
+  (let ((clbind-def (cpp2clb/create-clbind-constructor-def-from-point)))
     (cpp2clb/execute-function-previous-window
      '(lambda ()
 	(let ((indcolumn (+ 5 (current-column)))
@@ -327,6 +452,8 @@ into the previous window, at its point."
        (concat
 	return-string
 	"  value(\""
+	(cpp2clb/lispify-name (cpp2clb/find-current-class-name))
+	cpp2clb/enum-class-delimiter
 	(cpp2clb/lispify-name (cpp2clb/find-current-enum-name))
 	cpp2clb/enum-value-delimiter
 	(cpp2clb/lispify-name
@@ -342,6 +469,21 @@ into the previous window, at its point."
       (substring return-string 0 (- (length return-string) 2))
       "\n]\n"))
     return-string))
+
+(defun cpp2clb/insert-clbind-enum-def-previous-window ()
+  "Inserts the clbind def created from the current function 
+into the previous window, at its point."
+  (interactive)
+  (let ((clbind-def (cpp2clb/create-clbind-enum-def-from-point)))
+    (cpp2clb/execute-function-previous-window
+     '(lambda ()
+  	(let ((indcolumn (current-column))
+  	      (start (point)))
+  	  (insert clbind-def)
+  	  (indent-region start (point) indcolumn)
+  	  (newline)
+  	  (c-indent-line-or-region))))))
+
 
 (defun cpp2clb/create-clbind-enum-translators-from-point ()
   "Create enum translators fitting for the enum at point."
@@ -415,19 +557,29 @@ into the previous window."
      '(lambda ()
 	(insert clbind-def)))))
 
-(defun cpp2clb/insert-clbind-enum-def-previous-window ()
-  "Inserts the clbind def created from the current function 
+
+(defun cpp2clb/create-clbind-class-def-from-point ()
+  "Creates a clbind class_ from the current class."
+  (concat
+   ",class_<"
+   cpp2clb/current-namespace
+   "::"
+   (cpp2clb/find-current-class-name)
+   ">(\""
+   (cpp2clb/lispify-name (cpp2clb/find-current-class-name))
+   "\")\n\n"))
+
+
+(defun cpp2clb/insert-clbind-class-def-previous-window ()
+  "Inserts the clbind class_ def created from the current class
 into the previous window, at its point."
   (interactive)
-  (let ((clbind-def (cpp2clb/create-clbind-enum-def-from-point)))
+  (let ((clbind-def (cpp2clb/create-clbind-class-def-from-point)))
     (cpp2clb/execute-function-previous-window
      '(lambda ()
-  	(let ((indcolumn (current-column))
-  	      (start (point)))
-  	  (insert clbind-def)
-  	  (indent-region start (point) indcolumn)
-  	  (newline)
-  	  (c-indent-line-or-region))))))
+	(let ((indcolumn (current-column)))
+	  (insert clbind-def)
+	  (indent-line-to indcolumn))))))
 
 
 (define-minor-mode cpp2clbind-mode
@@ -451,6 +603,10 @@ from cpp header file definitions."
       cpp2clbind-mode-map
       (kbd "s-v")
       'cpp2clb/insert-clbind-enum-translators-previous-window)
+    (define-key
+      cpp2clbind-mode-map
+      (kbd "s-c")
+      'cpp2clb/insert-clbind-class-def-previous-window)
     cpp2clbind-mode-map))
 
 (add-hook 'c++-mode-hook 'cpp2clbind-mode)
