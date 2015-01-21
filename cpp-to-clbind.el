@@ -561,7 +561,7 @@ into the previous window."
 (defun cpp2clb/create-clbind-class-def-from-point ()
   "Creates a clbind class_ from the current class."
   (concat
-   ",class_<"
+   ",derivable_class_<"
    cpp2clb/current-namespace
    "::"
    (cpp2clb/find-current-class-name)
