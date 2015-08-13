@@ -1,0 +1,3 @@
+
+* load acts on *DEFAULT-PATHNAME-DEFAULTS*
+* linux standard directory can be set via ext:chdir

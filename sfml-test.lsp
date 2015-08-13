@@ -1,15 +1,15 @@
 
 (defun load-sfml ()
   "Load all available SFML libraries."
-  (core:load-bundle "libsfml-window.so")
-  (core:load-bundle "libsfml-graphics.so")
-  (core:load-bundle "libsfml-audio.so"))
+  (defmethod cleavir-environment::symbol-macro-expansion (sym (env core:environment))
+    (cleavir-environment::symbol-macro-expansion sym nil))
+  (defmethod cleavir-environment::macro-function (sym (env core:environment))
+    (cleavir-environment::macro-function sym nil))
+  (load "libsfml-window.so")
+  (load "libsfml-graphics.so")
+  (load "libsfml-audio.so"))
 
 (load-sfml)
-
-;; (core:load-bundle "libsfml-audio.so")
-;; (core:load-bundle "libsfml-network.so")
-;; (core:load-bundle "libsfml-system.so")
 
 (let
     ((window (sf:make-render-window-vs '(600 400 32) "This is a clasp SFML Window"))
