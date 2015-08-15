@@ -1,4 +1,11 @@
 
+;; this should be the path where the sfml libraries are located.
+(setf *DEFAULT-PATHNAME-DEFAULTS* #P"~/dev/sfml-build/lib/")
+
+;; this should be the path where the graphics and the music file
+;; referenced below are located.
+(ext:chdir #P"~/dev/clasp-stuff/resources")
+
 (defun load-sfml ()
   "Load all available SFML libraries."
   (defmethod cleavir-environment::symbol-macro-expansion (sym (env core:environment))
@@ -22,15 +29,13 @@
   (setf sprite (sf:make-sprite texture))
   (sf:open-from-file music "Medieval Rondo.ogg")
   (sf:play music)
-  (do ()
-      ((not (sf:is-open window)))
-    (do ()
-	((not (sf:poll-event window event)))
-      (setf event-type (sf:get-type event))
-      (cond
-	((eq event-type 'CLOSED) 
-	 (sf:close window))))
-    (sf:clear window '(0 0 0 255))
-    (sf:draw window sprite)
-    (sf:display window))
+  (loop while (sf:is-open window) do
+       (loop while (sf:poll-event window event) do
+	    (setf event-type (sf:get-type event))
+	    (cond
+	      ((eq event-type 'CLOSED) 
+	       (sf:close window))))
+       (sf:clear window '(0 0 0 255))
+       (sf:draw window sprite)
+       (sf:display window))
   (sf:stop music))
