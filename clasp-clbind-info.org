@@ -138,7 +138,7 @@ The exception to this rule is the lambda-list (arguments), which always requires
 As Common Lisp does not have the notion of static member functions, exposing them is similar to [[Exposing Functions][exposing free functions]].
 
 ** Public Member Variables
-Exposing public member variables is not yet supported. 
+Exposing public member variables works similar to exposing member functions. 
 
 * Translators
 Translators can be used to automatically convert C++ objects to Common Lisp objects and vice versa. This is mainly a convenience functionality, allowing for easier integration. It is especially useful for small C++ classes and structs that are passed to and from functions and are meant to be created on the fly. Instead of exposing them and then creating and filling them from Common Lisp, it is often easier to write a translator, e.g. from a list, which makes it possible to pass a list as a parameter in place of the object. This list is then automatically converted to the respective C++ object by the translator.

@@ -1,3 +1,23 @@
 
 * load acts on *DEFAULT-PATHNAME-DEFAULTS*
 * linux standard directory can be set via ext:chdir
+
+* public member variables:
+  template <class C, class D>
+  class_ &def_readonly(const char *name, D C::*mem_ptr) {
+    typedef detail::property_registration<T, D C::*, detail::null_type>
+        registration_type;
+
+    this->add_member(
+        new registration_type(name, mem_ptr, detail::null_type()));
+    return *this;
+  }
+* conversion
+T_sp arg = oCar(list);
+if ( arg.fixnump() ) {
+// use arg.unsafe_fixnum()
+} else if ( Double_sp darg = arg.asOrNull<DoubleFloat_O>() ) {
+// Use the value in darg
+} else if ( Ratio_sp rarg = arg.asOrNull<Ratio_O>() ) {
+// Use the value in rarg
+}
