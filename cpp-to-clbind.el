@@ -8,7 +8,7 @@
 (defconst cpp2clb/current-namespace "sf"
   "Always used as the current namespace.")
 
-(defconst cpp2clb/current-class nil
+(defconst cpp2clb/current-class "ContextSettings"
   "Used as the name of the current class.
 If nil, the name of the class is tried to be autodetected.")
 
@@ -49,7 +49,7 @@ not comments.")
 (defconst cpp2clb/function-name-regexp "\\sw+("
   "The regexp that is used to detect the name of a function.")
 
-(defconst cpp2clb/class-regexp "\s*\\(class\\|struct\\)\s+"
+(defconst cpp2clb/class-regexp "\s*\\(class\\)\s+"
   "The regexp that is used to find the current class.")
 
 (defconst cpp2clb/enum-regexp "\s*enum\s+"
@@ -241,12 +241,13 @@ being e.g. class, struct, enum,..."
   "Returns the current classname. If variable cpp2clb/current-class
 is nil, tries to autodetect, otherwise returns the value 
 of that variable."
-  (let ((found-name (cpp2clb/find-current-class-name)))
-    (if (and found-name cpp2clb/current-class)
-	(concat cpp2clb/current-class "::" found-name)
-      (if cpp2clb/current-class
-	  cpp2clb/current-class
-	(cpp2clb/find-current-class-name)))))
+  (or cpp2clb/current-class
+      (let ((found-name (cpp2clb/find-current-class-name)))
+	(if (and found-name cpp2clb/current-class)
+	    (concat cpp2clb/current-class "::" found-name)
+	  (if cpp2clb/current-class
+	      cpp2clb/current-class
+	    (cpp2clb/find-current-class-name))))))
 
 (defun cpp2clb/get-parameter-list-from-point ()
   "Returns a list of all the parameters for the function at point.
@@ -342,7 +343,10 @@ overloaded member functions is included in the .def."
     (&optional overloaded)
   "Returns the .def that suits the function definition found at point"
   (concat
-   ",def(\""
+   "inline scope register"
+   (upcase-initials (cpp2clb/get-current-class-name))
+   (upcase-initials (cpp2clb/get-function-name-at-point))
+   "()\n{\nreturn\n def(\""
    (cpp2clb/lispify-name (cpp2clb/get-current-class-name))
    cpp2clb/static-class-delimiter
    (cpp2clb/get-lispified-function-name-at-point)
@@ -360,12 +364,14 @@ overloaded member functions is included in the .def."
    cpp2clb/string-literal-start-delimiter
    (cpp2clb/get-documentation-string-at-point)
    cpp2clb/string-literal-end-delimiter
-   ")"))
+   ");\n}"))
 
-(defun cpp2clb/create-clbind-member-def-readonly-from-point ()
-    "Returns the .def_readonly that suits the member variable found at point."
+(defun cpp2clb/create-clbind-member-variable-def-from-point (readonly)
+  "Returns the .def_readonly that suits the member variable found at point."
   (concat
-   ".def_readonly(\""
+   (if readonly
+       ".def_readonly(\""
+     ".def_readwrite(\"")
    (cpp2clb/get-lispified-member-name-at-point)
    "\", &"
    cpp2clb/current-namespace
@@ -438,11 +444,12 @@ the function pointer cast for an overloaded method is inserted."
 	  (newline)
 	  (c-indent-line-or-region))))))
 
-(defun cpp2clb/insert-clbind-member-def-readonly-previous-window ()
-  "Inserts the def_readonly created from the current member variable
-into the previous window, at its point."
-  (interactive)
-  (let ((clbind-def (cpp2clb/create-clbind-member-def-readonly-from-point)))
+(defun cpp2clb/insert-clbind-member-variable-def-previous-window (readonly)
+  "Inserts a binding created from the current member variable
+into the previous window, at its point. If the prefix parameter READONLY
+is non-nil, a def_readonly will be created, otherwise a def_readwrite."
+  (interactive "P")
+  (let ((clbind-def (cpp2clb/create-clbind-member-variable-def-from-point readonly)))
     (cpp2clb/execute-function-previous-window
      '(lambda ()
 	(insert clbind-def)
@@ -470,7 +477,7 @@ into the previous window, at its point."
   (concat
    "*"
    (upcase (cpp2clb/get-current-class-name)) "-"
-   (upcase (cpp2clb/get-current-enum-name))
+   (upcase (cpp2clb/find-current-enum-name))
    "-ENUM-MAPPER*"))
 
 (defun cpp2clb/get-full-enum-designator ()
@@ -480,7 +487,7 @@ into the previous window, at its point."
    "::"
    (cpp2clb/get-current-class-name)
    "::"
-   (cpp2clb/get-current-enum-name)))
+   (cpp2clb/find-current-enum-name)))
 
 (defun cpp2clb/create-clbind-enum-def-from-point ()
   "Returns the enum definition that suits the enum definition found at point"
@@ -507,7 +514,7 @@ into the previous window, at its point."
 	"  value(\""
 	(cpp2clb/lispify-name (cpp2clb/get-current-class-name))
 	cpp2clb/enum-class-delimiter
-	(cpp2clb/lispify-name (cpp2clb/get-current-enum-name))
+	(cpp2clb/lispify-name (cpp2clb/find-current-enum-name))
 	cpp2clb/enum-value-delimiter
 	(cpp2clb/lispify-name
 	 (cpp2clb/get-enum-member-from-line enum-def))
@@ -641,7 +648,7 @@ and add the register template."
   (find-file (concat class-name ".hpp"))
   (insert (concat "#ifndef CLASP_SFML_" (upcase class-name) "_HPP\n"
 		  "#define CLASP_SFML_" (upcase class-name) "_HPP\n\n"
-		  "#include <SFML/Audio/" class-name ".hpp>\n\n"
+		  "#include <SFML/Window/" class-name ".hpp>\n\n"
 		  "#include <clasp/clbind/clbind.h>\n\n"
 		  "using namespace clbind;\n\n"
 		  "inline class_<sf::" class-name "> register" class-name "()\n"
@@ -665,15 +672,15 @@ from cpp header file definitions."
       'cpp2clb/insert-clbind-static-def-previous-window)
     (define-key
       cpp2clbind-mode-map
-      (kbd "s-r")
-      'cpp2clb/insert-clbind-member-def-readonly-previous-window)
+      (kbd "s-v")
+      'cpp2clb/insert-clbind-member-variable-def-previous-window)
     (define-key
       cpp2clbind-mode-map
       (kbd "s-m")
       'cpp2clb/insert-clbind-enum-def-previous-window)
     (define-key
       cpp2clbind-mode-map
-      (kbd "s-v")
+      (kbd "s-t")
       'cpp2clb/insert-clbind-enum-translators-previous-window)
     (define-key
       cpp2clbind-mode-map

@@ -1,6 +1,6 @@
 
 ;; this should be the path where the sfml libraries are located.
-(setf *DEFAULT-PATHNAME-DEFAULTS* #P"~/dev/sfml/clasp-sfml-build/lib/")
+(setf *DEFAULT-PATHNAME-DEFAULTS* #P"~/dev/sfml/clasp-sfml-build/lib/boehm/release/")
 
 ;; this should be the path where the graphics and the music file
 ;; referenced below are located.
@@ -24,6 +24,7 @@
      (texture (sf:make-texture))
      (music (sf:make-music))
      (sprite nil)
+     (circle (sf::make-circle-shape 5 30))
      (event-type nil))
   (sf:load-from-file texture "jetfighter.png" nil)
   (setf sprite (sf:make-sprite texture))
@@ -39,20 +40,21 @@
 	      ((eq event-type 'KEY-PRESSED)
 	       (cond
 	       	 ((eq (sf:code (sf:key event)) 'keyboard-key/a)
-	       	  (sf:rotate sprite 5))
+	       	  (sf:rotate sprite 5.0))
 	       	 ((eq (sf:code (sf:key event)) 'keyboard-key/d)
-	       	  (sf:rotate sprite -5))
+	       	  (sf:rotate sprite -5.0))
 		 ((eq (sf:code (sf:key event)) 'keyboard-key/up)
-		  (sf:move sprite '(0 5)))
+		  (sf:move sprite '(0.0 5.0)))
 		 ((eq (sf:code (sf:key event)) 'keyboard-key/down)
-		  (sf:move sprite '(0 -5)))
+		  (sf:move sprite '(0.0 -5.0)))
 		 ((eq (sf:code (sf:key event)) 'keyboard-key/left)
-		  (sf:move sprite '(-5 0)))
+		  (sf:move sprite '(-5.0 0.0)))
 		 ((eq (sf:code (sf:key event)) 'keyboard-key/right)
-		  (sf:move sprite '(5 0))))
+		  (sf:move sprite '(5.0 0.0))))
 	       )))
        (sf:clear window '(0 0 0 255))
        (sf:draw window sprite)
+       (sf:draw window circle)
        (sf:display window))
   (sf:stop music)
   )
