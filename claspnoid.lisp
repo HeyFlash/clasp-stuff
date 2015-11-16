@@ -56,7 +56,7 @@
 (defclass vertical-border (border)
   ((drawable
      :initform
-     (sf:make-rectangle-shape '(5.0 786.0)))))
+     (sf:make-rectangle-shape '(5.0 768.0)))))
 
 (defun about-equal (n1 n2)
   (< (abs (- n1 n2)) 0.001))
@@ -71,52 +71,67 @@
   (setf (move-vector to-move) '(0.0 0.0)))
 
 
-(defmethod collide ((go1 game-object) (go2 game-object))
-  (sf:float-rect-intersects
-   (sf:get-global-bounds (drawable go1))
-   (sf:get-global-bounds (drawable go2))))
-
-
 ;; (defmethod collide ((go1 game-object) (go2 game-object))
-;;   (let* ((intersection-area (sf:make-float-rect 0.0 0.0 0.0 0.0))
-;; 	 (intersects 
-;; 	  (sf:float-rect-intersects-area
-;; 	   (sf:get-global-bounds (drawable go1))
-;; 	   (sf:get-global-bounds (drawable go2))
-;; 	   intersection-area)))
-;;     (values intersects intersection-area)))
+;;   (sf:float-rect-intersects
+;;    (sf:get-global-bounds (drawable go1))
+;;    (sf:get-global-bounds (drawable go2))))
 
-;; (defmethod collide :around ((go1 movable-object) (go2 movable-object))
-;;   (let* ((intersects nil)
-;; 	 (intersection-area nil)
-;; 	 (go1rect (sf:get-global-bounds (drawable go1)))
-;; 	 (go2rect (sf:get-global-bounds (drawable go2))))
-;;     (multiple-value-bind (intersects intersection-area) (call-next-method))
-;;     (when intersects
-;;       (cond ((about-equal (sf:float-rect-width intersection-area)
-;; 			  (sf:float-rect-width go1rect))
-;; 	     (setf (cadr (move-vector go1)) (* -1 (cadr (move-vector go1)))))
-;; 	    ((eq (sf:float-rect-height intersection-area)
-;; 		 (sf:float-rect-height go1rect))
-;; 	     (setf (car (move-vector go1)) (* -1 (car (move-vector go1)))))
-;; 	    ((about-equal (sf:float-rect-width intersection-area)
-;; 			  (sf:float-rect-width go2rect))
-;; 	     (setf (cadr (move-vector go2)) (* -1 (cadr (move-vector go2)))))
-;; 	    ((eq (sf:float-rect-height intersection-area)
-;; 		 (sf:float-rect-height go2rect))
-;; 	     (setf (cadr (move-vector go2)) (* -1 (cadr (move-vector go2)))))))))
 
-(defmethod collide :around ((go1 ball) (go2 paddle))
-  (when (call-next-method)
-    (setf  (cadr (move-vector go1)) (* -1 (cadr (move-vector go1))))))
+(defmethod collide ((go1 game-object) (go2 game-object))
+  (let* ((intersection-area (sf:make-float-rect 0.0 0.0 0.0 0.0))
+	 (intersects 
+	  (sf:float-rect-intersects-area
+	   (sf:get-global-bounds (drawable go1))
+	   (sf:get-global-bounds (drawable go2))
+	   intersection-area)))
+    (values intersects intersection-area)))
 
-(defmethod collide :around ((go1 ball) (go2 vertical-border))
-  (when (call-next-method)
-    (setf  (car (move-vector go1)) (* -1 (car (move-vector go1))))))
+(defun change-move (go1 go2)
+  (setf (cadr (move-vector go1)) (* -1 (cadr (move-vector go1))))
+  (setf (cadr (move-vector go2)) (* -1 (cadr (move-vector go2)))))
 
-(defmethod collide :around ((go1 ball) (go2 horizontal-border))
-  (when (call-next-method)
-    (setf  (cadr (move-vector go1)) (* -1 (cadr (move-vector go1))))))
+(defun change-x-move (go1 go2)
+  (setf (car (move-vector go1)) (* -1 (car (move-vector go1))))
+  (setf (car (move-vector go2)) (* -1 (car (move-vector go2)))))
+
+(defun apply-collision-effect (go1 go2 intersection-area)
+  (let* ((go1rect (sf:get-global-bounds (drawable go1)))
+	 (go2rect (sf:get-global-bounds (drawable go2)))
+	 (int-width (sf:float-rect-width intersection-area))
+	 (int-height (sf:float-rect-height intersection-area))
+	 (go1-width (sf:float-rect-width go1rect))
+	 (go1-height (sf:float-rect-height go1rect))
+	 (go2-width (sf:float-rect-width go2rect))
+	 (go2-height (sf:float-rect-height go2rect)))
+    (cond ((or (= int-width go1-width)
+	       (= int-width go2-width))
+	   (change-y-move go1 go2))
+	  ((or (= int-height go1-height)
+	       (= int-height go2-height))
+	   (change-x-move go1 go2))
+	  ((and (< (int-width go1-width)) (< (int-width go2-width))
+		(< (int-height go1-height)) (< (int-height go2-height)))
+	   (change-x-move go1 go2)
+	   (change-y-move go1 go2)))))
+
+(defmethod collide :around ((go1 movable-object) (go2 movable-object))
+  (let* ((intersects nil)
+	 (intersection-area nil))
+    (multiple-value-bind (intersects intersection-area) (call-next-method)
+      (when intersects
+	(apply-collision-effect go1 go2 intersection-area)))))
+
+;; (defmethod collide :around ((go1 ball) (go2 paddle))
+;;   (when (call-next-method)
+;;     (setf  (cadr (move-vector go1)) (* -1 (cadr (move-vector go1))))))
+
+;; (defmethod collide :around ((go1 ball) (go2 vertical-border))
+;;   (when (call-next-method)
+;;     (setf  (car (move-vector go1)) (* -1 (car (move-vector go1))))))
+
+;; (defmethod collide :around ((go1 ball) (go2 horizontal-border))
+;;   (when (call-next-method)
+;;     (setf  (cadr (move-vector go1)) (* -1 (cadr (move-vector go1))))))
 
 (defun run-game ()
   "Run the game"
@@ -131,8 +146,10 @@
 	(left-border (make-instance 'vertical-border))
 	(right-border (make-instance 'vertical-border))
 	(game-objects nil))
-    (sf:set-position (slot-value bottom-border 'drawable) '(0.0 763.0))
-    (sf:set-position (slot-value right-border 'drawable) '(1019.0 0.0))
+    (sf:set-position (slot-value bottom-border 'drawable) '(0.0 768.0))
+    (sf:set-position (slot-value right-border 'drawable) '(1024.0 0.0))
+    (sf:set-position (slot-value top-border 'drawable) '(0.0 -5.0))
+    (sf:set-position (slot-value left-border 'drawable) '(-5.0 0.0))
     (sf:set-origin (slot-value ball 'drawable) '(3.0 3.0))
     (sf:set-origin (slot-value paddle 'drawable) '(40.0 5.0))
     (sf:set-position (slot-value ball 'drawable) '(20.0 20.0))
