@@ -2,6 +2,7 @@
 (setf *DEFAULT-PATHNAME-DEFAULTS* #P"~/dev/sfml/clasp-sfml-build/lib/boehm/release/")
 
 (defvar *main-window* nil "The main window")
+(defvar *game-objects* nil "A list of all objects in the game.")
 
 (defun load-sfml ()
   "Load all available SFML libraries."
@@ -42,9 +43,12 @@
   ((drawable
     :initform
     (sf:make-circle-shape 6 30))
-   (move-vector :initform '(5.0 5.0))))
+   (move-vector :initform '(5.0 -5.0))))
 
-(defclass block (movable-object) ())
+(defclass block (movable-object)
+  ((drawable
+    :initform
+    (sf:make-rectangle-shape '(90.0 20.0)))))
 
 (defclass border (movable-object) ())
 
@@ -86,7 +90,7 @@
 	   intersection-area)))
     (values intersects intersection-area)))
 
-(defun change-move (go1 go2)
+(defun change-y-move (go1 go2)
   (setf (cadr (move-vector go1)) (* -1 (cadr (move-vector go1))))
   (setf (cadr (move-vector go2)) (* -1 (cadr (move-vector go2)))))
 
@@ -121,6 +125,10 @@
       (when intersects
 	(apply-collision-effect go1 go2 intersection-area)))))
 
+(defmethod collide :around ((go1 ball) (go2 block))
+  (when (call-next-method)
+    (delete go2 *game-objects*)))
+
 ;; (defmethod collide :around ((go1 ball) (go2 paddle))
 ;;   (when (call-next-method)
 ;;     (setf  (cadr (move-vector go1)) (* -1 (cadr (move-vector go1))))))
@@ -133,6 +141,17 @@
 ;;   (when (call-next-method)
 ;;     (setf  (cadr (move-vector go1)) (* -1 (cadr (move-vector go1))))))
 
+(defun make-blocks ()
+  (let ((blocks nil))
+    (loop for y from 0 to 3 do
+	 (loop for x from 0 to 9 do
+	      (setf blocks (cons (make-instance 'block) blocks))
+	      (sf:set-position
+	       (drawable (car blocks))
+	       (list (+ 15.0 (* x 100))
+		     (+ 20.0 (* y 30))))))
+    blocks))
+
 (defun run-game ()
   "Run the game"
   (setf *main-window* (sf:make-render-window-vs '(1024 768 32) "Claspnoid"))
@@ -144,20 +163,21 @@
 	(top-border (make-instance 'horizontal-border))
 	(bottom-border (make-instance 'horizontal-border))
 	(left-border (make-instance 'vertical-border))
-	(right-border (make-instance 'vertical-border))
-	(game-objects nil))
+	(right-border (make-instance 'vertical-border)))
     (sf:set-position (slot-value bottom-border 'drawable) '(0.0 768.0))
     (sf:set-position (slot-value right-border 'drawable) '(1024.0 0.0))
     (sf:set-position (slot-value top-border 'drawable) '(0.0 -5.0))
     (sf:set-position (slot-value left-border 'drawable) '(-5.0 0.0))
     (sf:set-origin (slot-value ball 'drawable) '(3.0 3.0))
     (sf:set-origin (slot-value paddle 'drawable) '(40.0 5.0))
-    (sf:set-position (slot-value ball 'drawable) '(20.0 20.0))
+    (sf:set-position (slot-value ball 'drawable) '(512.0 700.0))
     (sf:set-position (slot-value  paddle 'drawable) '(512.0 740.0))
-    (setf game-objects
-	  (list ball paddle
-		top-border bottom-border
-		left-border right-border))
+    (setf *game-objects*
+	  (append
+	   (list ball paddle
+		 top-border bottom-border
+		 left-border right-border)
+	   (make-blocks)))
     (loop while (sf:is-open *main-window*) do
     	 (loop while (sf:poll-event *main-window* event) do
     	      (setf event-type (sf:type event))
@@ -168,14 +188,10 @@
     	   (setf (move-vector paddle) '(-10.0 0.0)))
     	 (when (sf::keyboard/is-key-pressed 'keyboard-key/right)
     	   (setf (move-vector paddle) '(10.0 0.0)))
-	 ;(mapcar game-objects #'move)
-	 (loop for o1 in game-objects do
-	      (move o1))
-	 (loop for (o1 . orest) on game-objects do
+	 (mapcar #'move *game-objects*)
+	 (loop for (o1 . orest) on *game-objects* do
 	      (loop for o2 in orest do
 		   (collide o1 o2)))
-	 ;(collide paddle ball)
     	 (sf:clear *main-window* '(0 0 0 255))
-    	 (draw *main-window* ball)
-    	 (draw *main-window* paddle)
+	 (mapcar (lambda (obj) (draw *main-window* obj)) *game-objects*)
 	 (sf:display *main-window*))))
