@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>clasp-clbind-info</title>
-<!-- 2015-01-05 Mo 22:58 -->
+<!-- 2015-11-28 Sa 22:26 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="Flash" />
@@ -272,8 +272,13 @@ In this function
 </dd>
 <dt> policies </dt><dd>Gives additional information about how to handle some parameters (see <a href="#sec-9">Policies</a>). An overloaded version of def does not have this parameter and uses the standard <code>policies&lt;&gt;()</code>.
 </dd>
-<dt> lambdalist </dt><dd>This optional parameter is an ordinary <a href="http://www.lispworks.com/documentation/lw60/CLHS/Body/03_da.htm">lambda-list</a> as in Common Lisp's <code>defun</code>. For every binding in the lambda list there has to be a corresponding argument in the C++ function. If the argument is an empty string, every parameter of the C++ function will be a required parameter in Common Lisp, even those that have default initializers.
+<dt> lambdalist </dt><dd>This optional parameter is an ordinary <a href="http://www.lispworks.com/documentation/lw60/CLHS/Body/03_da.htm">lambda-list</a> as in Common Lisp's <code>defun</code>. For every binding in the lambda list there has to be a corresponding argument in the C++ function. If the argument is an empty string, every parameter of the C++ function will be a required parameter in Common Lisp, even those that have default initializers. It is highly recommended to not leave the lambda list empty, even if you want to expose all parameters in a standard fashion. The lambda list provided here is used by slime for all kinds of support, e.g. to name and highlight the parameters when writing a function.
 </dd>
+</dl>
+<p>
+The lambda list is evaluated by lisp. As a consequence having <code>&amp;optional</code> parameters without an init-form is normally not a good idea, as <code>nil</code> would be passed to the function. Unless you have written a <a href="#sec-7">translator</a> that translates from <code>nil</code> to the required type, this will not work. Specifically, it might be tempting to think that providing an optional parameter in a lambda list for a parameter that has a default value in the C++ function would select that default value. However, this is not the case. You need to provide the lisp equivalent of that default value as an init-form to the optional parameter.
+</p>
+<dl class="org-dl">
 <dt> declares </dt><dd>This optional parameter represents the declaration part of a Common Lisp defun, but is currently unused.
 </dd>
 <dt> docstring </dt><dd>This optional parameter defines the docstring that is used for this function within clasp, e.g. for functions like <code>documentation</code> and <code>describe</code>. This is currently non-working, due to a bug.
@@ -437,7 +442,7 @@ As Common Lisp does not have the notion of static member functions, exposing the
 <h3 id="sec-6-5"><span class="section-number-3">6.5</span> Public Member Variables</h3>
 <div class="outline-text-3" id="text-6-5">
 <p>
-Exposing public member variables is not yet supported. 
+Exposing public member variables works similar to exposing member functions. 
 </p>
 </div>
 </div>
@@ -529,7 +534,7 @@ See <a href="https://github.com/HeyFlash/SFML/blob/master/include/CLASP-SFML/Win
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Flash</p>
-<p class="date">Created: 2015-01-05 Mo 22:58</p>
+<p class="date">Created: 2015-11-28 Sa 22:26</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.4.1 (<a href="http://orgmode.org">Org</a> mode 8.2.10)</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

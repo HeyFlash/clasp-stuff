@@ -26,7 +26,7 @@
      (sprite nil)
      (circle (sf::make-circle-shape 5 30))
      (event-type nil))
-  (sf:load-from-file texture "jetfighter.png" nil)
+  (sf:load-from-file texture "jetfighter.png" (sf:make-int-rect 0 0 0 0))
   (setf sprite (sf:make-sprite texture))
   (sf:open-from-file music "Medieval Rondo.ogg")
   (sf:play music)

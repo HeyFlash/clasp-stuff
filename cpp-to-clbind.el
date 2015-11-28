@@ -8,7 +8,7 @@
 (defconst cpp2clb/current-namespace "sf"
   "Always used as the current namespace.")
 
-(defconst cpp2clb/current-class "ContextSettings"
+(defconst cpp2clb/current-class nil
   "Used as the name of the current class.
 If nil, the name of the class is tried to be autodetected.")
 
@@ -496,9 +496,9 @@ into the previous window, at its point."
 	  ".enum_<"
 	  (cpp2clb/get-full-enum-designator)
 	  ">(core::lisp_intern(\""
-	  cpp2clb/current-package
-	  "\", \""
 	  (cpp2clb/get-current-enum-mapper-string)
+	  "\", \""
+	  cpp2clb/current-package
 	  "\"))\n[\n")))
     (dolist
 	(enum-def
