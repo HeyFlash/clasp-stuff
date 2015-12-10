@@ -1,4 +1,5 @@
 #+OPTIONS: ^:nil
+#+SETUPFILE: theme-readtheorg-local.setup
 
 * Note on this document
 This document contains information on creating was created by piecing together information from different sources during the creation of the SFML binding.
@@ -168,7 +169,7 @@ namespace translate
 ** Translation from Common Lisp objects to C++ objects 
 Translating from Common Lisp to C++ objects is done by specializing the templated struct ~from_object~ in the namespace ~translate~ to the C++ object type and providing a constructor that takes the Common Lisp object as a parameter and writes the result into an object called _v of the C++ object type:
 (?? is the typedef DeclareType a must or just a convention ??)
-#+BEGIN_SRC
+#+BEGIN_SRC C++
 namespace translate
 {
   template <>

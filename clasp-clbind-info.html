@@ -4,90 +4,16 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>clasp-clbind-info</title>
-<!-- 2015-11-28 Sa 22:26 -->
+<!-- 2015-12-11 Fr 00:19 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="Flash" />
-<style type="text/css">
- <!--/*--><![CDATA[/*><!--*/
-  .title  { text-align: center; }
-  .todo   { font-family: monospace; color: red; }
-  .done   { color: green; }
-  .tag    { background-color: #eee; font-family: monospace;
-            padding: 2px; font-size: 80%; font-weight: normal; }
-  .timestamp { color: #bebebe; }
-  .timestamp-kwd { color: #5f9ea0; }
-  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
-  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
-  .center { margin-left: auto; margin-right: auto; text-align: center; }
-  .underline { text-decoration: underline; }
-  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
-  p.verse { margin-left: 3%; }
-  pre {
-    border: 1px solid #ccc;
-    box-shadow: 3px 3px 3px #eee;
-    padding: 8pt;
-    font-family: monospace;
-    overflow: auto;
-    margin: 1.2em;
-  }
-  pre.src {
-    position: relative;
-    overflow: visible;
-    padding-top: 1.2em;
-  }
-  pre.src:before {
-    display: none;
-    position: absolute;
-    background-color: white;
-    top: -10px;
-    right: 10px;
-    padding: 3px;
-    border: 1px solid black;
-  }
-  pre.src:hover:before { display: inline;}
-  pre.src-sh:before    { content: 'sh'; }
-  pre.src-bash:before  { content: 'sh'; }
-  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
-  pre.src-R:before     { content: 'R'; }
-  pre.src-perl:before  { content: 'Perl'; }
-  pre.src-java:before  { content: 'Java'; }
-  pre.src-sql:before   { content: 'SQL'; }
-
-  table { border-collapse:collapse; }
-  caption.t-above { caption-side: top; }
-  caption.t-bottom { caption-side: bottom; }
-  td, th { vertical-align:top;  }
-  th.right  { text-align: center;  }
-  th.left   { text-align: center;   }
-  th.center { text-align: center; }
-  td.right  { text-align: right;  }
-  td.left   { text-align: left;   }
-  td.center { text-align: center; }
-  dt { font-weight: bold; }
-  .footpara:nth-child(2) { display: inline; }
-  .footpara { display: block; }
-  .footdef  { margin-bottom: 1em; }
-  .figure { padding: 1em; }
-  .figure p { text-align: center; }
-  .inlinetask {
-    padding: 10px;
-    border: 2px solid gray;
-    margin: 10px;
-    background: #ffffcc;
-  }
-  #org-div-home-and-up
-   { text-align: right; font-size: 70%; white-space: nowrap; }
-  textarea { overflow-x: auto; }
-  .linenr { font-size: smaller }
-  .code-highlighted { background-color: #ffff00; }
-  .org-info-js_info-navigation { border-style: none; }
-  #org-info-js_console-label
-    { font-size: 10px; font-weight: bold; white-space: nowrap; }
-  .org-info-js_search-highlight
-    { background-color: #ffff00; color: #000000; font-weight: bold; }
-  /*]]>*/-->
-</style>
+<link rel="stylesheet" type="text/css" href="styles/readtheorg/css/htmlize.css"/>
+<link rel="stylesheet" type="text/css" href="styles/readtheorg/css/readtheorg.css"/>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="styles/lib/js/jquery.stickytableheaders.min.js"></script>
+<script type="text/javascript" src="styles/readtheorg/js/readtheorg.js"></script>
 <script type="text/javascript">
 /*
 @licstart  The following is the entire license notice for the
@@ -210,15 +136,15 @@ Thus, code should include a section like this:
 
 <div class="org-src-container">
 
-<pre class="src src-C++">extern "C" 
+<pre class="src src-C++"><span style="color: #b4fa70;">extern</span> <span style="color: #e9b96e;">"C"</span> 
 {
   EXPORT
-  void CLASP_MAIN()
+  <span style="color: #8cc4ff;">void</span> <span style="color: #fce94f;">CLASP_MAIN</span>()
   {
-    using namespace clbind;
-     package("package-name")
+    <span style="color: #b4fa70;">using</span> <span style="color: #b4fa70;">namespace</span> <span style="color: #e6a8df;">clbind</span>;
+     package(<span style="color: #e9b96e;">"package-name"</span>)
      [
-       //exposure of classes and functions for use in this package
+       <span style="color: #73d216;">//</span><span style="color: #73d216;">exposure of classes and functions for use in this package</span>
      ];
   }
 }
@@ -235,11 +161,11 @@ Compiling the binding requires the inclusion of several header files. Some of th
 </p>
 <div class="org-src-container">
 
-<pre class="src src-C++">#include "src/clbind/clbind.h"       //required (or really just clbind/clbind.h ?)
-#include "src/core/lispVector.h"     //required, if writing converters
-#include "src/core/vectorObjects.h"  //for automatic conversion from and
-#include "src/core/cons.h"           //into c++ objects.
-#include "src/core/translators.h"    //assorted translators for string etc
+<pre class="src src-C++"><span style="color: #ad7fa8;">#include</span> <span style="color: #e9b96e;">"src/clbind/clbind.h"</span>       <span style="color: #73d216;">//</span><span style="color: #73d216;">required (or really just clbind/clbind.h ?)</span>
+<span style="color: #ad7fa8;">#include</span> <span style="color: #e9b96e;">"src/core/lispVector.h"</span>     <span style="color: #73d216;">//</span><span style="color: #73d216;">required, if writing converters</span>
+<span style="color: #ad7fa8;">#include</span> <span style="color: #e9b96e;">"src/core/vectorObjects.h"</span>  <span style="color: #73d216;">//</span><span style="color: #73d216;">for automatic conversion from and</span>
+<span style="color: #ad7fa8;">#include</span> <span style="color: #e9b96e;">"src/core/cons.h"</span>           <span style="color: #73d216;">//</span><span style="color: #73d216;">into c++ objects.</span>
+<span style="color: #ad7fa8;">#include</span> <span style="color: #e9b96e;">"src/core/translators.h"</span>    <span style="color: #73d216;">//</span><span style="color: #73d216;">assorted translators for string etc</span>
 </pre>
 </div>
 </div>
@@ -253,13 +179,13 @@ Exposing functions is done via the function <code>def</code>:
 </p>
 <div class="org-src-container">
 
-<pre class="src src-C++">template &lt;typename F, class Policies&gt;
-scope def(char     const* name,
-	  F               f,
-	  Policies const&amp; policies,
-	  string   const&amp; lambdalist = "",
-	  string   const&amp; declares   = "",
-	  string   const&amp; docstring  = "" )
+<pre class="src src-C++"><span style="color: #b4fa70;">template</span> &lt;<span style="color: #b4fa70;">typename</span> <span style="color: #8cc4ff;">F</span>, <span style="color: #b4fa70;">class</span> <span style="color: #8cc4ff;">Policies</span>&gt;
+<span style="color: #8cc4ff;">scope</span> <span style="color: #fce94f;">def</span>(<span style="color: #8cc4ff;">char</span>     <span style="color: #b4fa70;">const</span>* <span style="color: #fcaf3e;">name</span>,
+          <span style="color: #8cc4ff;">F</span>               <span style="color: #fcaf3e;">f</span>,
+          <span style="color: #8cc4ff;">Policies</span> <span style="color: #b4fa70;">const</span>&amp; <span style="color: #fcaf3e;">policies</span>,
+          <span style="color: #8cc4ff;">string</span>   <span style="color: #b4fa70;">const</span>&amp; <span style="color: #fcaf3e;">lambdalist</span> = <span style="color: #e9b96e;">""</span>,
+          <span style="color: #8cc4ff;">string</span>   <span style="color: #b4fa70;">const</span>&amp; <span style="color: #fcaf3e;">declares</span>   = <span style="color: #e9b96e;">""</span>,
+          <span style="color: #8cc4ff;">string</span>   <span style="color: #b4fa70;">const</span>&amp; <span style="color: #fcaf3e;">docstring</span>  = <span style="color: #e9b96e;">""</span> )
 </pre>
 </div>
 <p>
@@ -290,7 +216,7 @@ Suppose a C++ function
 </p>
 <div class="org-src-container">
 
-<pre class="src src-C++">double addThreeNumbers(double x, double y, double z);
+<pre class="src src-C++"><span style="color: #8cc4ff;">double</span> <span style="color: #fce94f;">addThreeNumbers</span>(<span style="color: #8cc4ff;">double</span> <span style="color: #fcaf3e;">x</span>, <span style="color: #8cc4ff;">double</span> <span style="color: #fcaf3e;">y</span>, <span style="color: #8cc4ff;">double</span> <span style="color: #fcaf3e;">z</span>);
 </pre>
 </div>
 <p>
@@ -298,9 +224,9 @@ A complete binding could look like this (only the first two parameters are requi
 </p>
 <div class="org-src-container">
 
-<pre class="src src-C++">def("addThreeNumbers", &amp;addThreeNumbers, policies&lt;&gt;(),
-    "(x &amp;optional (y 0) (z 0))", "",
-    "Return the addition of all three arguments. y and z are optional and default to 0."),
+<pre class="src src-C++">def(<span style="color: #e9b96e;">"addThreeNumbers"</span>, &amp;addThreeNumbers, <span style="color: #8cc4ff;">policies</span>&lt;&gt;(),
+    <span style="color: #e9b96e;">"(x &amp;optional (y 0) (z 0))"</span>, <span style="color: #e9b96e;">""</span>,
+    <span style="color: #e9b96e;">"Return the addition of all three arguments. y and z are optional and default to 0."</span>),
 </pre>
 </div>
 <p>
@@ -318,7 +244,7 @@ To expose overloaded functions, you have to cast the function pointer to the cor
 </p>
 <div class="org-src-container">
 
-<pre class="src src-C++">def("addThreeNumbers", (double(*)(double, double, double)) &amp;addThreeNumbers),
+<pre class="src src-C++">def(<span style="color: #e9b96e;">"addThreeNumbers"</span>, (<span style="color: #8cc4ff;">double</span>(*)(<span style="color: #8cc4ff;">double</span>, <span style="color: #8cc4ff;">double</span>, <span style="color: #8cc4ff;">double</span>)) &amp;addThreeNumbers),
 </pre>
 </div>
 </div>
@@ -333,7 +259,7 @@ Exposing a class is done via the class <code>class_</code>:
 </p>
 <div class="org-src-container">
 
-<pre class="src src-C++">class_&lt;CppClassName&gt;("lisp-class-name")
+<pre class="src src-C++"><span style="color: #8cc4ff;">class_</span>&lt;CppClassName&gt;(<span style="color: #e9b96e;">"lisp-class-name"</span>)
 </pre>
 </div>
 <p>
@@ -343,7 +269,7 @@ To prevent the automatic creation of a default constructor, use a second paramet
 </p>
 <div class="org-src-container">
 
-<pre class="src src-C++">class_&lt;CppClassName&gt;("lisp-class-name", no_default_constructor)
+<pre class="src src-C++"><span style="color: #8cc4ff;">class_</span>&lt;CppClassName&gt;(<span style="color: #e9b96e;">"lisp-class-name"</span>, no_default_constructor)
 </pre>
 </div>
 </div>
@@ -357,7 +283,7 @@ To expose the inheritance structure of C++ classes, expose the base class, and u
 </p>
 <div class="org-src-container">
 
-<pre class="src src-C++">class_&lt;CppDerivedClassName, CppBaseClassName&gt;("lisp-class-name")
+<pre class="src src-C++"><span style="color: #8cc4ff;">class_</span>&lt;CppDerivedClassName, CppBaseClassName&gt;(<span style="color: #e9b96e;">"lisp-class-name"</span>)
 </pre>
 </div>
 <p>
@@ -365,7 +291,7 @@ If multiple inheritance brings in several base classes, use the following format
 </p>
 <div class="org-src-container">
 
-<pre class="src src-C++">class_&lt;CppDerivedClassName, bases&lt;CppBaseClassName1, CppBaseClassName2&gt;&gt;("lisp-class-name")
+<pre class="src src-C++">class_&lt;CppDerivedClassName, bases&lt;CppBaseClassName1, CppBaseClassName2&gt;&gt;(<span style="color: #e9b96e;">"lisp-class-name"</span>)
 </pre>
 </div>
 <p>
@@ -382,13 +308,13 @@ Add constructors to exposed classes with the function <code>def_constructor</cod
 </p>
 <div class="org-src-container">
 
-<pre class="src src-C++">template&lt;typename... Types&gt;
-class_&amp; def_constructor(const string&amp;         name,
-			constructor&lt;Types...&gt; sig,
-			const Policies&amp;       policies,
-			string const&amp;         arguments = "",
-			string const&amp;         declares  = "",
-			string const&amp;         docstring = "")
+<pre class="src src-C++"><span style="color: #b4fa70;">template</span>&lt;<span style="color: #b4fa70;">typename</span>... Types&gt;
+<span style="color: #8cc4ff;">class_</span>&amp; <span style="color: #fce94f;">def_constructor</span>(<span style="color: #b4fa70;">const</span> <span style="color: #8cc4ff;">string</span>&amp;         <span style="color: #fcaf3e;">name</span>,
+                        <span style="color: #8cc4ff;">constructor</span>&lt;Types...&gt; <span style="color: #fcaf3e;">sig</span>,
+                        <span style="color: #b4fa70;">const</span> <span style="color: #8cc4ff;">Policies</span>&amp;       <span style="color: #fcaf3e;">policies</span>,
+                        <span style="color: #8cc4ff;">string</span> <span style="color: #b4fa70;">const</span>&amp;         <span style="color: #fcaf3e;">arguments</span> = <span style="color: #e9b96e;">""</span>,
+                        <span style="color: #8cc4ff;">string</span> <span style="color: #b4fa70;">const</span>&amp;         <span style="color: #fcaf3e;">declares</span>  = <span style="color: #e9b96e;">""</span>,
+                        <span style="color: #8cc4ff;">string</span> <span style="color: #b4fa70;">const</span>&amp;         <span style="color: #fcaf3e;">docstring</span> = <span style="color: #e9b96e;">""</span>)
 </pre>
 </div>
 <p>
@@ -413,13 +339,13 @@ Exposing member functions is similar to exposing free functions. Call the <code>
 </p>
 <div class="org-src-container">
 
-<pre class="src src-C++">template&lt;class F, class DefaultOrPolicies&gt;
-class_&amp; def(char const*       name, 
-	    F                 fn, 
-	    DefaultOrPolicies default_or_policies,
-	    string const&amp;     arguments = "",
-	    string const&amp;     declares  = "",
-	    string const&amp;     docstring = "")
+<pre class="src src-C++"><span style="color: #b4fa70;">template</span>&lt;<span style="color: #b4fa70;">class</span> <span style="color: #8cc4ff;">F</span>, <span style="color: #b4fa70;">class</span> <span style="color: #8cc4ff;">DefaultOrPolicies</span>&gt;
+<span style="color: #8cc4ff;">class_</span>&amp; <span style="color: #fce94f;">def</span>(<span style="color: #8cc4ff;">char</span> <span style="color: #b4fa70;">const</span>*       <span style="color: #fcaf3e;">name</span>, 
+            <span style="color: #8cc4ff;">F</span>                 <span style="color: #fcaf3e;">fn</span>, 
+            <span style="color: #8cc4ff;">DefaultOrPolicies</span> <span style="color: #fcaf3e;">default_or_policies</span>,
+            <span style="color: #8cc4ff;">string</span> <span style="color: #b4fa70;">const</span>&amp;     <span style="color: #fcaf3e;">arguments</span> = <span style="color: #e9b96e;">""</span>,
+            <span style="color: #8cc4ff;">string</span> <span style="color: #b4fa70;">const</span>&amp;     <span style="color: #fcaf3e;">declares</span>  = <span style="color: #e9b96e;">""</span>,
+            <span style="color: #8cc4ff;">string</span> <span style="color: #b4fa70;">const</span>&amp;     <span style="color: #fcaf3e;">docstring</span> = <span style="color: #e9b96e;">""</span>)
 </pre>
 </div>
 <p>
@@ -468,16 +394,16 @@ Translating from C++ to Common Lisp objects is done by specializing the template
 </p>
 <div class="org-src-container">
 
-<pre class="src src-C++">namespace translate
+<pre class="src src-C++"><span style="color: #b4fa70;">namespace</span> <span style="color: #e6a8df;">translate</span>
 {
-  template &lt;&gt;
-  class to_object&lt;CppTypeToTranslateFrom&gt; 
+  <span style="color: #b4fa70;">template</span> &lt;&gt;
+  <span style="color: #b4fa70;">class</span> <span style="color: #8cc4ff;">to_object</span>&lt;CppTypeToTranslateFrom&gt; 
   {
-    static core::T_sp convert(CppTypeToTranslateFrom cppObject)
+    <span style="color: #b4fa70;">static</span> <span style="color: #e6a8df;">core</span>::<span style="color: #8cc4ff;">T_sp</span> <span style="color: #fce94f;">convert</span>(<span style="color: #8cc4ff;">CppTypeToTranslateFrom</span> <span style="color: #fcaf3e;">cppObject</span>)
     {
-       core::Cons_sp cons; //use a cons object in this example
-       //convert cppObject to an object derived from core::T_sp (here: Cons_sp).
-       return cons;
+       <span style="color: #e6a8df;">core</span>::<span style="color: #8cc4ff;">Cons_sp</span> <span style="color: #fcaf3e;">cons</span>; <span style="color: #73d216;">//</span><span style="color: #73d216;">use a cons object in this example</span>
+       <span style="color: #73d216;">//</span><span style="color: #73d216;">convert cppObject to an object derived from core::T_sp (here: Cons_sp).</span>
+       <span style="color: #b4fa70;">return</span> cons;
     }
   };
 };
@@ -494,21 +420,23 @@ Translating from C++ to Common Lisp objects is done by specializing the template
 Translating from Common Lisp to C++ objects is done by specializing the templated struct <code>from_object</code> in the namespace <code>translate</code> to the C++ object type and providing a constructor that takes the Common Lisp object as a parameter and writes the result into an object called _v of the C++ object type:
 (?? is the typedef DeclareType a must or just a convention ??)
 </p>
-<pre class="example">
-namespace translate
+<div class="org-src-container">
+
+<pre class="src src-C++"><span style="color: #b4fa70;">namespace</span> <span style="color: #e6a8df;">translate</span>
 {
-  template &lt;&gt;
-  struct from_object&lt;CppTypeToTranslateTo&gt; 
+  <span style="color: #b4fa70;">template</span> &lt;&gt;
+  <span style="color: #b4fa70;">struct</span> <span style="color: #8cc4ff;">from_object</span>&lt;CppTypeToTranslateTo&gt; 
   {
-    typedef CppTypeToTranslateTo DeclareType;
-    DeclareType _v;
-    from_object(const core::T_sp&amp; obj)
+    <span style="color: #b4fa70;">typedef</span> <span style="color: #8cc4ff;">CppTypeToTranslateTo</span> <span style="color: #8cc4ff;">DeclareType</span>;
+    <span style="color: #8cc4ff;">DeclareType</span> <span style="color: #fcaf3e;">_v</span>;
+    <span style="color: #fce94f;">from_object</span>(<span style="color: #b4fa70;">const</span> <span style="color: #e6a8df;">core</span>::<span style="color: #8cc4ff;">T_sp</span>&amp; <span style="color: #fcaf3e;">obj</span>)
     {
-      //convert obj and store the result in _v.
+      <span style="color: #73d216;">//</span><span style="color: #73d216;">convert obj and store the result in _v.</span>
     }
   };
 };
 </pre>
+</div>
 </div>
 </div>
 </div>
@@ -534,7 +462,7 @@ See <a href="https://github.com/HeyFlash/SFML/blob/master/include/CLASP-SFML/Win
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Flash</p>
-<p class="date">Created: 2015-11-28 Sa 22:26</p>
+<p class="date">Created: 2015-12-11 Fr 00:19</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.4.1 (<a href="http://orgmode.org">Org</a> mode 8.2.10)</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
