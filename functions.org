@@ -1,0 +1,11 @@
+#+name: clhs-link
+#+begin_src emacs-lisp :exports none :var clhsval=""
+(require 'slime)
+(setq org-babel-inline-result-wrap "%s")
+(let ((hyperspec-loc (car (common-lisp-hyperspec--find clhsval))))
+  (if hyperspec-loc
+    (concat "[[" common-lisp-hyperspec-root "Body/" hyperspec-loc "][" clhsval "]]")
+    clhsval))
+#+end_src
+
+#+MACRO: CLHS call_clhs-link("$1")
